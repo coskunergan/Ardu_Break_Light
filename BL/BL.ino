@@ -28,16 +28,16 @@ ISR(WDT_vect)
 /////////////////////////////////////////////////////////////////
 void enterSleep(void)
 {
-  ADCSRA &= ~(1 << ADEN);
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);   /* EDIT: could also use SLEEP_MODE_PWR_DOWN for lowest power consumption. */
-  cli();
-  sleep_enable();
-  sleep_bod_disable();
-  sei();
-  sleep_cpu();
-  sleep_disable();
-  sei();
-  ADCSRA |= (1 << ADEN);
+//  ADCSRA &= ~(1 << ADEN);
+//  set_sleep_mode(SLEEP_MODE_PWR_DOWN);   /* EDIT: could also use SLEEP_MODE_PWR_DOWN for lowest power consumption. */
+//  cli();
+//  sleep_enable();
+//  sleep_bod_disable();
+//  sei();
+//  sleep_cpu();
+//  sleep_disable();
+//  sei();
+//  ADCSRA |= (1 << ADEN);
 }
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
@@ -55,46 +55,58 @@ void setup() {
   //Set_prescaler(8);// cpu speed low
 
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(2, INPUT_PULLUP);
+  pinMode(2, OUTPUT);
+  pinMode(3, INPUT);
 
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < 3; i++)
   {
+    digitalWrite(2, HIGH); 
     digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-    delay(50);                       // wait for a second
+    delay(300);                       // wait for a second
+    digitalWrite(2, LOW); 
     digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-    delay(100);
+    delay(500);
   }
 
-  attachInterrupt(0, wakeUp, CHANGE);
+ // attachInterrupt(0, wakeUp, CHANGE);
 
-  /* Clear the reset flag. */
-  MCUSR &= ~(1 << WDRF);
-  /* In order to change WDE or the prescaler, we need to
-     set WDCE (This will allow updates for 4 clock cycles).
-  */
-  WDTCSR |= (1 << WDCE) | (1 << WDE);
-  /* set new watchdog timeout prescaler value */
-  WDTCSR = 1 << WDP0 | 1 << WDP3; /* 8.0 seconds */
-  /* Enable the WD interrupt (note no reset). */
-  WDTCSR |= _BV(WDIE);
+//  /* Clear the reset flag. */
+//  MCUSR &= ~(1 << WDRF);
+//  /* In order to change WDE or the prescaler, we need to
+//     set WDCE (This will allow updates for 4 clock cycles).
+//  */
+//  WDTCSR |= (1 << WDCE) | (1 << WDE);
+//  /* set new watchdog timeout prescaler value */
+//  WDTCSR = 1 << WDP0 | 1 << WDP3; /* 8.0 seconds */
+//  /* Enable the WD interrupt (note no reset). */
+//  WDTCSR |= _BV(WDIE);
+
+    wdt_enable(WDTO_8S);     // enable the watchdog
 }
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 void loop() {
-  if (f_wdt == 1)
+ // if (f_wdt == 1)
   {
     f_wdt = 0;
-    if (enable_count)
+   // if (enable_count)
     {
-      enable_count--;
-      digitalWrite(3, HIGH);   // turn the LED on (HIGH is the voltage level)
+      if(digitalRead(3))
+      {
+      //enable_count--;
+      digitalWrite(2, HIGH);   // turn the LED on (HIGH is the voltage level)
+      digitalWrite(LED_BUILTIN, HIGH);
       delay(30);                       // wait for a second
-      digitalWrite(3, LOW);    // turn the LED off by making the voltage LOW
+      digitalWrite(2, LOW);    // turn the LED off by making the voltage LOW
+      digitalWrite(LED_BUILTIN, LOW);
+      }
     }
   }
-  enterSleep();
+ // enterSleep();
+ delay(5000); 
+ wdt_reset();
+ 
 }
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
